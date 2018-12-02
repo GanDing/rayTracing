@@ -17,9 +17,9 @@
 
 #include <stdlib.h>
 
-size_t quadraticRoots(double A, double B, double C, double roots[2]);
-size_t cubicRoots(double A, double B, double C, double roots[3]);
-size_t quarticRoots(double A, double B, double C, double D, double roots[4]);
+size_t quadraticRoots(float A, float B, float C, float roots[2]);
+size_t cubicRoots(float A, float B, float C, float roots[3]);
+size_t quarticRoots(float A, float B, float C, float D, float roots[4]);
 
 #endif /* CS488_POLYROOTS_HPP */
 

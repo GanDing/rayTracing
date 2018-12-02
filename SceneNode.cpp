@@ -122,7 +122,10 @@ Intersect SceneNode::intersect(Ray ray) {
 		}
 	}
 	// newIntersect.n = trans * newIntersect.n;
-	newIntersect.n = normalize(trans * newIntersect.n);
+	newIntersect.n = vec4(normalize(vec3(newIntersect.n) * mat3(
+		invtrans[0][0], invtrans[0][1], invtrans[0][2],
+		invtrans[1][0], invtrans[1][1], invtrans[1][2],
+		invtrans[2][0], invtrans[2][1], invtrans[2][2])), 0);
 	// cout << "scenenode " << newIntersect.n << endl;
 	return newIntersect;
 }

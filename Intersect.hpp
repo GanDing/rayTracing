@@ -7,7 +7,7 @@ class Intersect {
 public:
 	Intersect();
 
-	double t;
-	glm::dvec4 n;
+	float t;
+	glm::vec4 n;
 	Material *m_material;
 };

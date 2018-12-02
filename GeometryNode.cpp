@@ -33,8 +33,8 @@ void GeometryNode::setMaterial( Material *mat )
 }
 
 Intersect GeometryNode::intersect(Ray ray) {
-	dvec4 newOrigin = invtrans * ray.origin;
-	dvec4 newVector = invtrans * ray.vec;
+	vec4 newOrigin = invtrans * ray.origin;
+	vec4 newVector = invtrans * ray.vec;
 
 	Ray newRay = Ray(newOrigin, newVector);
 	Intersect newIntersect = m_primitive->intersect(newRay);
@@ -47,7 +47,10 @@ Intersect GeometryNode::intersect(Ray ray) {
 		}
 	}
 	// newIntersect.n = invtrans * newIntersect.n;
-	newIntersect.n = normalize(invtrans * newIntersect.n);
+	newIntersect.n = vec4(normalize(vec3(newIntersect.n) * mat3(
+		invtrans[0][0], invtrans[0][1], invtrans[0][2],
+		invtrans[1][0], invtrans[1][1], invtrans[1][2],
+		invtrans[2][0], invtrans[2][1], invtrans[2][2])), 0);
 	// cout << "node " << newIntersect.n << endl;
 	return newIntersect;
 }

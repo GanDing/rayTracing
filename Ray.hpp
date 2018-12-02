@@ -4,9 +4,9 @@
 
 class Ray {
 public:
-	Ray(glm::dvec4 origin, glm::dvec4 vec);
+	Ray(glm::vec4 origin, glm::vec4 vec);
 	Ray();
-	glm::dvec4 origin;
-	glm::dvec4 vec;
+	glm::vec4 origin;
+	glm::vec4 vec;
 };
 

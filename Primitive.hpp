@@ -10,13 +10,13 @@ class Primitive {
 public:
   virtual ~Primitive();
   virtual Intersect intersect(Ray ray);
-  bool ray_intersect_triangle(Ray ray, glm::dvec3 p0, glm::dvec3 p1, glm::dvec3 p2, double &t);
+  bool ray_intersect_triangle(Ray ray, glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, float &t);
 };
 
 class NonhierSphere : public Primitive {
 public:
-  NonhierSphere(const glm::vec3& pos, double radius)
-    : m_pos(glm::dvec4(pos, 1)), m_radius(radius)
+  NonhierSphere(const glm::vec3& pos, float radius)
+    : m_pos(glm::vec4(pos, 1)), m_radius(radius)
   {
   }
   NonhierSphere() {}
@@ -24,13 +24,13 @@ public:
   virtual Intersect intersect(Ray ray);
 
 protected:
-  glm::dvec4 m_pos;
-  double m_radius;
+  glm::vec4 m_pos;
+  float m_radius;
 };
 
 class Sphere : public NonhierSphere {
 public:
-  Sphere(const glm::vec3& pos, double radius) {}
+  Sphere(const glm::vec3& pos, float radius) {}
   Sphere();
   virtual ~Sphere();
   // Intersect intersect(Ray ray);
@@ -39,7 +39,7 @@ public:
 class NonhierBox : public Primitive {
 public:
   NonhierBox() {}
-  NonhierBox(const glm::vec3& pos, double size);
+  NonhierBox(const glm::vec3& pos, float size);
   NonhierBox(const glm::vec3& minPos, const glm::vec3& maxPos);
   void initialTriangles(glm::vec3 minPos, glm::vec3 maxPos);
   
@@ -47,15 +47,15 @@ public:
   virtual Intersect intersect(Ray ray);
 
 protected:
-  glm::dvec4 m_pos;
-  glm::dvec3 bounds[2];
-  glm::dvec3 triangle[12][3];
+  glm::vec4 m_pos;
+  glm::vec3 bounds[2];
+  glm::vec3 triangle[12][3];
 };
 
 class Cube : public NonhierBox {
 public:
   Cube();
-  Cube(const glm::vec3& pos, double size) {}
+  Cube(const glm::vec3& pos, float size) {}
   virtual ~Cube();
 };
 
@@ -64,7 +64,7 @@ public:
 //   NonhierCyliner();
 //   virtual ~NonhierCyliner();
 //   Intersect intersect(Ray ray);
-//   double r;
+//   float r;
 // };
 
 class Cylinder : public Primitive {

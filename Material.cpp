@@ -11,6 +11,10 @@ Material::~Material()
 
 vec3 Material::get_kd() {}
 
+vec3 Material::get_kd(float u, float v) {}
+
 vec3 Material::get_ks() {}
 
-double Material::get_shininess() {}
+float Material::get_shininess() {}
+
+float Material::get_trans() {}

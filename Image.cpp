@@ -25,19 +25,19 @@ Image::Image(
     m_height(height)
 {
 	size_t numElements = m_width * m_height * m_colorComponents;
-	m_data = new double[numElements];
-	memset(m_data, 0, numElements*sizeof(double));
+	m_data = new float[numElements];
+	memset(m_data, 0, numElements*sizeof(float));
 }
 
 //---------------------------------------------------------------------------------------
 Image::Image(const Image & other)
   : m_width(other.m_width),
     m_height(other.m_height),
-    m_data(other.m_data ? new double[m_width * m_height * m_colorComponents] : 0)
+    m_data(other.m_data ? new float[m_width * m_height * m_colorComponents] : 0)
 {
   if (m_data) {
     std::memcpy(m_data, other.m_data,
-                m_width * m_height * m_colorComponents * sizeof(double));
+                m_width * m_height * m_colorComponents * sizeof(float));
   }
 }
 
@@ -54,12 +54,12 @@ Image & Image::operator=(const Image& other)
   
   m_width = other.m_width;
   m_height = other.m_height;
-  m_data = (other.m_data ? new double[m_width * m_height * m_colorComponents] : 0);
+  m_data = (other.m_data ? new float[m_width * m_height * m_colorComponents] : 0);
 
   if (m_data) {
     std::memcpy(m_data,
                 other.m_data,
-                m_width * m_height * m_colorComponents * sizeof(double)
+                m_width * m_height * m_colorComponents * sizeof(float)
     );
   }
   
@@ -79,19 +79,19 @@ uint Image::height() const
 }
 
 //---------------------------------------------------------------------------------------
-double Image::operator()(uint x, uint y, uint i) const
+float Image::operator()(uint x, uint y, uint i) const
 {
   return m_data[m_colorComponents * (m_width * y + x) + i];
 }
 
 //--------------------------------------------------------------------------------------- Fall 2018
-double & Image::operator()(uint x, uint y, uint i)
+float & Image::operator()(uint x, uint y, uint i)
 {
   return m_data[m_colorComponents * (m_width * y + x) + i];
 }
 
 //---------------------------------------------------------------------------------------
-static double clamp(double x, double a, double b)
+static float clamp(float x, float a, float b)
 {
 	return x < a ? a : (x > b ? b : x);
 }
@@ -103,7 +103,7 @@ bool Image::savePng(const std::string & filename) const
 
 	image.resize(m_width * m_height * m_colorComponents);
 
-	double color;
+	float color;
 	for (uint y(0); y < m_height; y++) {
 		for (uint x(0); x < m_width; x++) {
 			for (uint i(0); i < m_colorComponents; ++i) {
@@ -126,13 +126,13 @@ bool Image::savePng(const std::string & filename) const
 }
 
 //---------------------------------------------------------------------------------------
-const double * Image::data() const
+const float * Image::data() const
 {
   return m_data;
 }
 
 //---------------------------------------------------------------------------------------
-double * Image::data()
+float * Image::data()
 {
   return m_data;
 }

@@ -9,11 +9,11 @@ public:
 	JointNode(const std::string & name);
 	virtual ~JointNode();
 
-	void set_joint_x(double min, double init, double max);
-	void set_joint_y(double min, double init, double max);
+	void set_joint_x(float min, float init, float max);
+	void set_joint_y(float min, float init, float max);
 
 	struct JointRange {
-		double min, init, max;
+		float min, init, max;
 	};
 
 

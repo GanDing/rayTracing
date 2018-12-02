@@ -8,15 +8,18 @@
 
 class PhongMaterial : public Material {
 public:
-  PhongMaterial(const glm::vec3& kd, const glm::vec3& ks, double shininess);
+  PhongMaterial(const glm::vec3& kd, const glm::vec3& ks, float shininess, float trans);
   virtual ~PhongMaterial();
   glm::vec3 get_kd();
+  glm::vec3 get_kd(float u, float v);
   glm::vec3 get_ks();
-  double get_shininess();
+  float get_shininess();
+  float get_trans();
 
 private:
   glm::vec3 m_kd;
   glm::vec3 m_ks;
 
-  double m_shininess;
+  float m_shininess;
+  float m_trans;
 };

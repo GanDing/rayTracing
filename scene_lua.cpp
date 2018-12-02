@@ -145,7 +145,7 @@ int gr_joint_cmd(lua_State* L)
   const char* name = luaL_checkstring(L, 1);
   JointNode* node = new JointNode(name);
 
-  double x[3], y[3];
+  float x[3], y[3];
   get_tuple(L, 2, x, 3);
   get_tuple(L, 3, y, 3);
 
@@ -210,7 +210,7 @@ int gr_nh_sphere_cmd(lua_State* L)
   glm::vec3 pos;
   get_tuple(L, 2, &pos[0], 3);
 
-  double radius = luaL_checknumber(L, 3);
+  float radius = luaL_checknumber(L, 3);
 
   data->node = new GeometryNode(name, new NonhierSphere(pos, radius));
 
@@ -234,7 +234,7 @@ int gr_nh_box_cmd(lua_State* L)
   glm::vec3 pos;
   get_tuple(L, 2, &pos[0], 3);
 
-  double size = luaL_checknumber(L, 3);
+  float size = luaL_checknumber(L, 3);
 
   data->node = new GeometryNode(name, new NonhierBox(pos, size));
 
@@ -258,7 +258,7 @@ int gr_cylinder_cmd(lua_State* L)
   // glm::vec3 pos;
   // get_tuple(L, 2, &pos[0], 3);
 
-  // double size = luaL_checknumber(L, 3);
+  // float size = luaL_checknumber(L, 3);
 
   data->node = new GeometryNode(name, new Cylinder());
 
@@ -313,7 +313,7 @@ int gr_light_cmd(lua_State* L)
   
   Light l;
 
-  double col[3];
+  float col[3];
   get_tuple(L, 1, &l.position[0], 3);
   get_tuple(L, 2, col, 3);
   get_tuple(L, 3, l.falloff, 3);
@@ -349,9 +349,9 @@ int gr_render_cmd(lua_State* L)
   get_tuple(L, 6, &view[0], 3);
   get_tuple(L, 7, &up[0], 3);
 
-  double fov = luaL_checknumber(L, 8);
+  float fov = luaL_checknumber(L, 8);
 
-  double ambient_data[3];
+  float ambient_data[3];
   get_tuple(L, 9, ambient_data, 3);
   glm::vec3 ambient(ambient_data[0], ambient_data[1], ambient_data[2]);
 
@@ -385,15 +385,17 @@ int gr_material_cmd(lua_State* L)
   gr_material_ud* data = (gr_material_ud*)lua_newuserdata(L, sizeof(gr_material_ud));
   data->material = 0;
   
-  double kd[3], ks[3];
+  float kd[3], ks[3];
   get_tuple(L, 1, kd, 3);
   get_tuple(L, 2, ks, 3);
 
-  double shininess = luaL_checknumber(L, 3);
+  float shininess = luaL_checknumber(L, 3);
+  float trans = luaL_checknumber(L, 4);
   
   data->material = new PhongMaterial(glm::vec3(kd[0], kd[1], kd[2]),
                                      glm::vec3(ks[0], ks[1], ks[2]),
-                                     shininess);
+                                     shininess,
+                                     trans);
 
   luaL_newmetatable(L, "gr.material");
   lua_setmetatable(L, -2);
@@ -456,7 +458,7 @@ int gr_node_scale_cmd(lua_State* L)
 
   SceneNode* self = selfdata->node;
 
-  double values[3];
+  float values[3];
   
   for (int i = 0; i < 3; i++) {
     values[i] = luaL_checknumber(L, i + 2);
@@ -478,7 +480,7 @@ int gr_node_translate_cmd(lua_State* L)
 
   SceneNode* self = selfdata->node;
 
-  double values[3];
+  float values[3];
   
   for (int i = 0; i < 3; i++) {
     values[i] = luaL_checknumber(L, i + 2);
@@ -508,7 +510,7 @@ int gr_node_rotate_cmd(lua_State* L)
   
   luaL_argcheck(L, axis >= 'x' && axis <= 'z', 2, "Axis must be x, y or z");
   
-  double angle = luaL_checknumber(L, 3);
+  float angle = luaL_checknumber(L, 3);
 
   self->rotate(axis, angle);
 

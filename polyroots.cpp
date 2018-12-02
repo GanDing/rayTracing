@@ -73,9 +73,9 @@
 #include <math.h>
 
 /* Forward declarations */
-double sink_lookup(double), cosk_lookup(double);
-static double PolishRoot( 
-	size_t degree, double A, double B, double C, double D, double root );
+float sink_lookup(float), cosk_lookup(float);
+static float PolishRoot( 
+	size_t degree, float A, float B, float C, float D, float root );
 #define fabs(x) ( ((x) > 0) ? x : -x )
 
 /* The square root of 3:  */
@@ -90,7 +90,7 @@ static double PolishRoot(
  * root function.
  */
 #ifdef _WIN32
-static double cbrt( double t )
+static float cbrt( float t )
 {
 	return pow( t, 1.0/3.0 );
 }	
@@ -104,10 +104,10 @@ static double cbrt( double t )
 **    -b +- (b^2 - 4ac)/ 2a  when b and the discriminant are of similar
 **    magnitude.
 */
-size_t quadraticRoots( double A, double B, double C, double roots[2] )
+size_t quadraticRoots( float A, float B, float C, float roots[2] )
 {
-	double D;
-	double q;
+	float D;
+	float q;
 
 	if( A == 0 ) {
 		if( B == 0 ) {
@@ -144,9 +144,9 @@ size_t quadraticRoots( double A, double B, double C, double roots[2] )
 **    Note:  The accuracy of the root can be improved with "PolishRoot".
 */
 /* Coefficients :   x^3  + C[0] x^2 + C[1] x  + C[2] */
-size_t cubicRoots( double p, double q, double r, double roots[3] )
+size_t cubicRoots( float p, float q, float r, float roots[3] )
 {
-  double u, v, w, s, t, cosk, sink, p_over_3, k;
+  float u, v, w, s, t, cosk, sink, p_over_3, k;
   /* int i; */
 
   u = q - p*p/3.0;
@@ -161,10 +161,10 @@ size_t cubicRoots( double p, double q, double r, double roots[3] )
   if (w > 0)  {			/* One real root */
     w = sqrt(w);
     if (v < 0) {
-      double w_minus_v = w - v;
+      float w_minus_v = w - v;
       roots[0] = cbrt(w_minus_v/2.0) - (u*cbrt(2.0/w_minus_v) + p)  / 3.0;
     } else {
-      double w_plus_v = w + v;
+      float w_plus_v = w + v;
       roots[0] = - cbrt(w_plus_v/2.0) + (u*cbrt(2.0/w_plus_v) - p) / 3.0;
     }
 	return 1;
@@ -199,10 +199,10 @@ size_t cubicRoots( double p, double q, double r, double roots[3] )
 */
 /* Coefficients :  x^4 + C[0] x^3  + C[1] x^2 + C[2] x  + C[3] */
 size_t quarticRoots( 
-	double a, double b, double c, double d, double roots[4] )
+	float a, float b, float c, float d, float roots[4] )
 {
-	double h,h1,h2,H,   g,g1,g2,G, n, m, en, em, y;
-	double cubic[3];	/* Cubic and quadratic coefficients */
+	float h,h1,h2,H,   g,g1,g2,G, n, m, en, em, y;
+	float cubic[3];	/* Cubic and quadratic coefficients */
 	int i, nr;
 
 	/* Find the a real root of a certain cubic */
@@ -298,7 +298,7 @@ size_t quarticRoots(
 	/* remove non-roots */
 	//      fprintf(stderr,"REMOVE NONROOTS %d\n",nr);
 	for ( i=0; i < nr; i++ ) {
-		double r;
+		float r;
 		r = (((roots[i]+a)*roots[i]+b)*roots[i]+c)*roots[i]+d;
 		//              fprintf(stderr,"root %d is %g\n",i,r);
 		if ( fabs(r)>1e-4 ) {
@@ -312,12 +312,12 @@ size_t quarticRoots(
 
 /*  Polish a monic polynomial root by Newton-Raphson iteration */
 /* degree <= 4; c[] has 'degree' values. */
-static double PolishRoot( 
-	size_t degree, double A, double B, double C, double D, double root )
+static float PolishRoot( 
+	size_t degree, float A, float B, float C, float D, float root )
 {
 	size_t i, j;
-	double x, y, dydx, dx, lastx = HUGE, lasty = HUGE;
-	double cs[4] = { A, B, C, D };
+	float x, y, dydx, dx, lastx = HUGE, lasty = HUGE;
+	float cs[4] = { A, B, C, D };
 
 	x = root;
 
@@ -356,11 +356,11 @@ static double PolishRoot(
 }
 
 #ifdef TABLE_LOOKUP
-static double cosk_lookup(double t)
+static float cosk_lookup(float t)
 {
   int it;
-  double tprime, low, high, u, v;
-  static double table[1025] = {	/* Precalculated table of cos( arccos(t)/3 ) */
+  float tprime, low, high, u, v;
+  static float table[1025] = {	/* Precalculated table of cos( arccos(t)/3 ) */
     0.500000000000,0.517935289657,0.525302996762,0.530932683914,0.535662933895,
     0.539818532924,0.543566035609,0.547004373987,0.550198001933,0.553191685247,
     0.556018014738,0.558701591651,0.561261527021,0.563713017516,0.566068383456,
@@ -583,17 +583,17 @@ static double cosk_lookup(double t)
   /* Use linear interpolation between table entries. */
   low = table[it];
   high = table[it+1];
-  u = (tprime - (double)it);
+  u = (tprime - (float)it);
   v = (1.0 - u);
   return ( low*v + high*u );
 }
 
 
-static double sink_lookup(double t)
+static float sink_lookup(float t)
 {
   int it;
-  double tprime, low, high,u, v;
-  static double table[1025] = {	/* Precalculated table of sin( arccos(t)/3 ) */
+  float tprime, low, high,u, v;
+  static float table[1025] = {	/* Precalculated table of sin( arccos(t)/3 ) */
     0.866025403784,0.855419800875,0.850915249360,0.847413998676,0.844431892606,
     0.841781415518,0.839366406841,0.837129747912,0.835034226047,0.833053995473,
     0.831170239654,0.829368754829,0.827638507010,0.825970722171,0.824358286943,
@@ -814,7 +814,7 @@ static double sink_lookup(double t)
   /* Use linear interpolation between table entries. */
   low = table[it];
   high = table[it+1];
-  u = (tprime - (double)it);
+  u = (tprime - (float)it);
   v = (1.0 - u);
   return ( low*v + high*u );
 }
@@ -857,10 +857,10 @@ static double sink_lookup(double t)
 #ifndef M_PI
 #define M_PI          3.14159265358979323846
 #endif
-extern double  sqrt( double x );
-extern double  cbrt( double x );
-extern double cos( double x ); 
-extern double acos( double x );
+extern float  sqrt( float x );
+extern float  cbrt( float x );
+extern float cos( float x ); 
+extern float acos( float x );
 
 /* epsilon surrounding for near zero values */
 
@@ -868,13 +868,13 @@ extern double acos( double x );
 #define	    IsZero(x)	((x) > -EQN_EPS && (x) < EQN_EPS)
 
 #ifdef NOCBRT
-#define     cbrt(x)     ((x) > 0.0 ? pow((double)(x), 1.0/3.0) : \
-                          ((x) < 0.0 ? -pow((double)-(x), 1.0/3.0) : 0.0))
+#define     cbrt(x)     ((x) > 0.0 ? pow((float)(x), 1.0/3.0) : \
+                          ((x) < 0.0 ? -pow((float)-(x), 1.0/3.0) : 0.0))
 #endif
 
-int SolveQuadric( double c[3], double s[2] )
+int SolveQuadric( float c[3], float s[2] )
 {
-    double p, q, D;
+    float p, q, D;
 
     /* normal form: x^2 + px + q = 0 */
 
@@ -894,7 +894,7 @@ int SolveQuadric( double c[3], double s[2] )
     }
     else if (D > 0)
     {
-	double sqrt_D = sqrt(D);
+	float sqrt_D = sqrt(D);
 
 	s[ 0 ] =   sqrt_D - p;
 	s[ 1 ] = - sqrt_D - p;
@@ -905,13 +905,13 @@ int SolveQuadric( double c[3], double s[2] )
 }
 
 
-int SolveCubic( double c[4], double s[3] )
+int SolveCubic( float c[4], float s[3] )
 {
     int     i, num;
-    double  sub;
-    double  A, B, C;
-    double  sq_A, p, q;
-    double  cb_p, D;
+    float  sub;
+    float  A, B, C;
+    float  sq_A, p, q;
+    float  cb_p, D;
 
     /* normal form: x^3 + Ax^2 + Bx + C = 0 */
 
@@ -938,9 +938,9 @@ int SolveCubic( double c[4], double s[3] )
 	    s[ 0 ] = 0;
 	    num = 1;
 	}
-	else /* one single and one double solution */
+	else /* one single and one float solution */
 	{
-	    double u = cbrt(-q);
+	    float u = cbrt(-q);
 	    s[ 0 ] = 2 * u;
 	    s[ 1 ] = - u;
 	    num = 2;
@@ -948,8 +948,8 @@ int SolveCubic( double c[4], double s[3] )
     }
     else if (D < 0) /* Casus irreducibilis: three real solutions */
     {
-	double phi = 1.0/3 * acos(-q / sqrt(-cb_p));
-	double t = 2 * sqrt(-p);
+	float phi = 1.0/3 * acos(-q / sqrt(-cb_p));
+	float t = 2 * sqrt(-p);
 
 	s[ 0 ] =   t * cos(phi);
 	s[ 1 ] = - t * cos(phi + M_PI / 3);
@@ -958,9 +958,9 @@ int SolveCubic( double c[4], double s[3] )
     }
     else /* one real solution */
     {
-	double sqrt_D = sqrt(D);
-	double u = cbrt(sqrt_D - q);
-	double v = - cbrt(sqrt_D + q);
+	float sqrt_D = sqrt(D);
+	float u = cbrt(sqrt_D - q);
+	float v = - cbrt(sqrt_D + q);
 
 	s[ 0 ] = u + v;
 	num = 1;
@@ -977,12 +977,12 @@ int SolveCubic( double c[4], double s[3] )
 }
 
 
-int SolveQuartic( double c[5], double s[4] )
+int SolveQuartic( float c[5], float s[4] )
 {
-    double  coeffs[ 4 ];
-    double  z, u, v, sub;
-    double  A, B, C, D;
-    double  sq_A, p, q, r;
+    float  coeffs[ 4 ];
+    float  z, u, v, sub;
+    float  A, B, C, D;
+    float  sq_A, p, q, r;
     int     i, num;
 
     /* normal form: x^4 + Ax^3 + Bx^2 + Cx + D = 0 */

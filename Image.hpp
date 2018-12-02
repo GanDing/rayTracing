@@ -37,22 +37,22 @@ public:
 	uint height() const;
 
     // Retrieve a particular component from the image.
-	double operator()(uint x, uint y, uint i) const;
+	float operator()(uint x, uint y, uint i) const;
 
 	// Retrieve a particular component from the image.
-	double & operator()(uint x, uint y, uint i);
+	float & operator()(uint x, uint y, uint i);
 
 	// Save this image into the PNG file with name 'filename'.
 	// Warning: If 'filename' already exists, it will be overwritten.
 	bool savePng(const std::string & filename) const;
 
-	const double * data() const;
-	double * data();
+	const float * data() const;
+	float * data();
 
 private:
 	uint m_width;
 	uint m_height;
-	double * m_data;
+	float * m_data;
 
 	static const uint m_colorComponents;
 };

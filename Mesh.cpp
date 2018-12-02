@@ -8,17 +8,16 @@
 
 // #include "cs488-framework/ObjFileDecoder.hpp"
 #include "Mesh.hpp"
+#include "A4.hpp"
 using namespace std;
 using namespace glm;
-
-#define SHOW_BOUNDING_VOLUMN false
 
 Mesh::Mesh( const std::string& fname )
 	: m_vertices()
 	, m_faces()
 {
 	std::string code;
-	double vx, vy, vz;
+	float vx, vy, vz;
 	size_t s1, s2, s3;
 
 	std::ifstream ifs( fname.c_str() );
@@ -27,8 +26,8 @@ Mesh::Mesh( const std::string& fname )
 	    string file = "Assets/" + fname;
 	    ifs = std::ifstream(file.c_str());
   	}
-  	dvec3 minPoint = dvec3(numeric_limits<double>::max(), numeric_limits<double>::max(), numeric_limits<double>::max());
-  	dvec3 maxPoint = dvec3(-numeric_limits<double>::max(), -numeric_limits<double>::max(), -numeric_limits<double>::max());
+  	vec3 minPoint = vec3(numeric_limits<float>::infinity(), numeric_limits<float>::infinity(), numeric_limits<float>::infinity());
+  	vec3 maxPoint = vec3(-numeric_limits<float>::infinity(), -numeric_limits<float>::infinity(), -numeric_limits<float>::infinity());
 	while( ifs >> code ) {
 		if( code == "v" ) {
 			ifs >> vx >> vy >> vz;
@@ -77,19 +76,19 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
 Intersect Mesh::intersect(Ray ray) {
 	Intersect newIntersect = bounding.intersect(ray);
 	// newIntersect.t = 0;
-	if (SHOW_BOUNDING_VOLUMN) {
-		return newIntersect;
-	}
-	double t = numeric_limits<double>::max();
+#ifdef SHOW_BOUNDING_VOLUMN
+	return newIntersect;
+#endif
+	float t = numeric_limits<float>::infinity();
 	if (newIntersect.t < t && newIntersect.t >= 0) {
-		newIntersect.t = numeric_limits<double>::max();
+		newIntersect.t = numeric_limits<float>::infinity();
 		for (Triangle face : m_faces) {
 			bool is_intersect = ray_intersect_triangle(ray, m_vertices[face.v1], m_vertices[face.v2], m_vertices[face.v3], t);
 			if (is_intersect) {
 				if (t < newIntersect.t && t >= 0) {
 					newIntersect.t = t;
-					dvec3 n = normalize(cross(m_vertices[face.v2] - m_vertices[face.v1], m_vertices[face.v3] - m_vertices[face.v1]));
-					newIntersect.n = dvec4(n, 0);
+					vec3 n = normalize(cross(m_vertices[face.v2] - m_vertices[face.v1], m_vertices[face.v3] - m_vertices[face.v1]));
+					newIntersect.n = vec4(n, 0);
 				}
 			}
 		}
