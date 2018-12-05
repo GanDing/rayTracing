@@ -79,6 +79,8 @@ OBJECTS := \
 	$(OBJDIR)/SceneNode.o \
 	$(OBJDIR)/polyroots.o \
 	$(OBJDIR)/scene_lua.o \
+	$(OBJDIR)/TextureMaterial.o \
+	$(OBJDIR)/BumpMaterial.o \
 
 RESOURCES := \
 
@@ -182,6 +184,12 @@ $(OBJDIR)/polyroots.o: ../polyroots.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 $(OBJDIR)/scene_lua.o: ../scene_lua.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+$(OBJDIR)/TextureMaterial.o: ../TextureMaterial.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
+$(OBJDIR)/BumpMaterial.o: ../BumpMaterial.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(CXXFLAGS) -o "$@" -c "$<"
 

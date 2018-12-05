@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <glm/gtx/io.hpp>
+#include <glm/gtc/constants.hpp>
 #include "Primitive.hpp"
 #include "polyroots.hpp"
 using namespace std;
@@ -15,62 +16,42 @@ Intersect Primitive::intersect(Ray ray) {
 	return Intersect();
 }
 
-// bool Primitive::ray_intersect_triangle(Ray ray, vec3 v0, vec3 v1, vec3 v2, float &t) {
-// 	const float EPSILON = 0.001;
-//     vec3 edge1, edge2, h, s, q;
-//     float a,f,u,v;
-//     edge1 = v1 - v0;
-//     edge2 = v2 - v0;
-//     h = cross(vec3(ray.vec), edge2);
-//     a = dot(edge1, h);
-//     if (a > -EPSILON && a < EPSILON)
-//         return false;    // This ray is parallel to this triangle.
-//     f = 1.0/a;
-//     s = vec3(ray.origin) - v0;
-//     u = f * dot(s, h);
-//     if (u < 0.0 || u > 1.0)
-//         return false;
-//     q = cross(s, edge1);
-//     v = f * dot(vec3(ray.vec), q);
-//     if (v < 0.0 || u + v > 1.0)
-//         return false;
-//     // At this stage we can compute t to find out where the intersection point is on the line.
-//     t = f * dot(edge2, q);
-//     if (t > EPSILON) // ray intersection
-//     {
-//         return true;
-//     }
-//     else // This means that there is a line intersection but not a ray intersection.
-//         return false;
-// }
+bool Primitive::ray_intersect_triangle(Ray ray, vec3 v0, vec3 v1, vec3 v2, float &t) {
+	vec3 edge1, edge2, rayDir, normal, rayV0;
+	edge1 = v1 - v0;
+	edge2 = v2 - v0;
+	rayDir = -vec3(ray.vec);
+	normal = cross(edge1, edge2);
+	if (dot(vec3(ray.vec), normal) > 0) {
+		return false;
+	}
+	rayV0 = vec3(ray.origin) - v0;
+	float beta = determinant(mat3({
+		rayV0, edge2, rayDir
+	})) / determinant(mat3({
+		edge1, edge2, rayDir
+	}));
+	if (beta < 0) {
+		return false;
+	}
+	float gamma = determinant(mat3({
+		edge1, rayV0, rayDir
+	})) / determinant(mat3({
+		edge1, edge2, rayDir
+	}));
+	if (gamma < 0 || beta + gamma > 1) {
+		return false;
+	}
+	t = determinant(mat3({
+		edge1, edge2, rayV0
+	})) / determinant(mat3({
+		edge1, edge2, rayDir
+	}));
+	return true;
+}
 
-bool Primitive::ray_intersect_triangle(Ray ray, glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, float &t) {
-  vec3 edge1 = p1 - p0;
-  vec3 edge2 = p2 - p0;
-  vec3 edge3 = -vec3(ray.vec.x, ray.vec.y, ray.vec.z);
-
-  vec4 normal = vec4(cross(edge1, edge2), 0);
-  if (dot(ray.vec, normal) > 0) {
-    return false;
-  }
-
-  vec3 R = vec3(ray.origin.x - p0.x, ray.origin.y - p0.y, ray.origin.z - p0.z);
-  float D = determinant(mat3({edge1, edge2, edge3}));
-  float D1 = determinant(mat3({R, edge2, edge3}));
-  float beta = D1/D;
-
-  if (beta < 0) {
-    return false;
-  }
-  float D2 = determinant(mat3({edge1, R, edge3}));
-  float gamma = D2 / D;
-  if (gamma >= 0 && beta + gamma <= 1){
-    float D3 = determinant(mat3({edge1, edge2, R}));
-    t = D3 / D;
-    return true;
-  }
-  return false;
-
+vec2 Primitive::texturePosition(vec4 point) {
+	return vec2();
 }
 
 Sphere::Sphere()// : m_pos(vec4(0, 0, 0, 1)), m_radius(1)
@@ -124,8 +105,19 @@ Intersect NonhierSphere::intersect(Ray ray) {
 	return newIntersect;
 }
 
+vec2 NonhierSphere::texturePosition(vec4 point) {
+  	vec3 normal = vec3(point - m_pos);
+	normal = normalize(normal);
+	float dx = -normal.x;
+	float dy = normal.y;
+	float dz = normal.z;
+	vec2 result = vec2(0.5 + atan2(dz, dx) / (2 * pi<float>()), 0.5 - asin(dy) / pi<float>());
+	result.x = std::min(std::max(result.x, 0.0f), 1.0f);
+  	result.y = std::min(std::max(result.y, 0.0f), 1.0f);
+	return result;
+}
 
-NonhierBox::NonhierBox(const glm::vec3& pos, float size) : m_pos(vec4(pos, 1))
+NonhierBox::NonhierBox(const glm::vec3& pos, float size) : m_pos(vec4(pos, 1)), m_size(size)
 {
 	vec3 newPoint = pos;
 	initialTriangles(newPoint, newPoint + size);
@@ -210,6 +202,29 @@ Intersect NonhierBox::intersect(Ray ray) {
 	return newIntersect;
 }
 
+vec2 NonhierBox::texturePosition(glm::vec4 point) {
+	vec4 curPos = m_pos;
+  	vec3 d = vec3(point - m_pos);
+  	float epsilon = 0.01;
+  	vec2 result = vec2();
+  	if (abs(d.x) < epsilon) {
+  		result = vec2(d.z / m_size, (m_size-d.y) / m_size);
+  	} else if (abs(d.x - m_size) < epsilon) {
+  		result = vec2((m_size - d.z)  / m_size, (m_size - d.y) / m_size);
+  	} else if (abs(d.y) < epsilon) {
+  		result = vec2((m_size - d.x) / m_size, (m_size - d.z) / m_size);
+  	} else if (abs(d.y - m_size) < epsilon) {
+  		result = vec2(d.x / m_size, (m_size - d.z) / m_size);
+  	} else if (abs(d.z) < epsilon) {
+  		result = vec2((m_size - d.x) / m_size, (m_size - d.y) / m_size);
+  	} else if (abs(d.z - m_size) < epsilon) {
+  		result = vec2(d.x / m_size, (m_size - d.y) / m_size);
+  	}
+  	result.x = std::min(std::max(result.x, 0.0f), 1.0f);
+  	result.y = std::min(std::max(result.y, 0.0f), 1.0f);
+	return result;
+}
+
 Cylinder::Cylinder() {
 }
 
@@ -280,4 +295,49 @@ Intersect Cylinder::intersect(Ray ray) {
 		}
 		return newIntersect;
 	}
+}
+
+Torus::Torus(float R, float r) : R(R), r(r) {}
+
+Torus::~Torus() {}
+
+Intersect Torus::intersect(Ray ray) {
+	Intersect newIntersect = Intersect();
+	vec4 m_pos = vec4(0, 0, 0, 0);
+	// cout << newIntersect.n << " " << newIntersect.t << endl;
+	// cout << ray.origin << " " << ray.vec << " " << m_pos << endl;
+	vec3 o = vec3(ray.origin);
+	vec3 d = vec3(ray.vec);
+	double c4 = pow(pow(d.x, 2) + pow(d.y, 2) + pow(d.z, 2), 2);
+	double c3 = 4.0f * (pow(d.x, 2) + pow(d.y, 2) + pow(d.z, 2)) * (o.x * d.x + o.y * d.y + o.z * d.z);
+	double c2 = 2.0f * (pow(d.x, 2) + pow(d.y, 2) + pow(d.z, 2)) * (pow(o.x, 2) + pow(o.y, 2) + pow(o.z, 2) - (r * r + R * R)) + 4 * pow((o.x * d.x + o.y * d.y + o.z * d.z), 2) + 4 * R * R * pow(d.y, 2);
+	double c1 = 4 * (pow(o.x, 2) + pow(o.y, 2) + pow(o.z, 2) - (r * r + R * R)) * (o.x * d.x + o.y * d.y + o.z * d.z) + 8 * R * R * o.y * d.y;
+	double c0 = pow(pow(o.x, 2) + pow(o.y, 2) + pow(o.z, 2) - (r * r + R * R), 2) - 4 * R * R * (r * r - pow(o.y, 2));
+	c3 /= c4;
+	c2 /= c4;
+	c1 /= c4;
+	c0 /= c4;
+	// cout << a << " " << b << " " << c << endl;
+	float roots[4];
+	size_t numRoot = quarticRoots(c3, c2, c1, c0, roots);
+	if (numRoot == 0) {
+		// cout << "nima" << endl;
+		return newIntersect;
+	}
+	newIntersect.t = roots[0];
+	for (int i = 1; i < 4; i++) {
+		if (numRoot > i && roots[i] > 0.0f) {
+			newIntersect.t = std::min(newIntersect.t, roots[i]);
+		}
+	}
+	vec4 intersectPoint = ray.origin + newIntersect.t * ray.vec;
+	// newIntersect.n = normalize(intersectPoint - m_pos + vec4(0, r));
+	float paramSquared = R * R + r * r;
+	float sumSquared = pow(intersectPoint.x, 2) + pow(intersectPoint.y, 2) + pow(intersectPoint.z, 2);
+	vec4 normal = vec4(4 * intersectPoint.x * (sumSquared - paramSquared),  4.0 * intersectPoint.y * (sumSquared - paramSquared + 2.0 * R * R), 4.0 * intersectPoint.z * (sumSquared - paramSquared), 0);
+	newIntersect.n = normalize(normal);
+	// cout << "premitive: " << newIntersect.n << " " << newIntersect.t << endl;
+	return newIntersect;
+
+
 }

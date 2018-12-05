@@ -17,11 +17,11 @@ using namespace std;
 
 #ifdef ENABLE_MUTITHREAD
 mutex m_lock;
-vector<vector<vec3>> colorImage;
 uint lx = 0;
 uint ly = 0;
 uint count = 1;
 #endif
+vector<vector<vec3>> colorImage;
 
 void A4_Render(
 		// What to render  
@@ -147,14 +147,14 @@ void A4_Render(
 	for (int i = 0; i < NUM_THREAD; i++) {
 		thread_list[i].join();
 	}
-	for (uint y = 0; y < h; y++) {
-		for (uint x = 0; x < w; x++) {
-			vec3 colour = colorImage[x][y];
-			image(x, y, 0) = colour.x;
-			image(x, y, 1) = colour.y;
-			image(x, y, 2) = colour.z;
-		}
-	}
+	// for (uint y = 0; y < h; y++) {
+	// 	for (uint x = 0; x < w; x++) {
+	// 		vec3 colour = colorImage[x][y];
+	// 		image(x, y, 0) = colour.x;
+	// 		image(x, y, 1) = colour.y;
+	// 		image(x, y, 2) = colour.z;
+	// 	}
+	// }
 #else
 	int step = h / 20;
 	int count = 1;
@@ -184,9 +184,10 @@ void A4_Render(
 	for (uint y = 0; y < h; y++) {
 		for (uint x = 0; x < w; x++) {
 			vec3 colour = renderPixel(x, y, h, worldTranform, eye, lights, ambient, root);
-			image(x, y, 0) = colour.x;
-			image(x, y, 1) = colour.y;
-			image(x, y, 2) = colour.z;
+			// image(x, y, 0) = colour.x;
+			// image(x, y, 1) = colour.y;
+			// image(x, y, 2) = colour.z;
+			colorImage[x][y] = colour;
 		}
 		if (y > step * count) {
 			cout << (float) y / h * 100 << "% complete" << endl;
@@ -194,7 +195,29 @@ void A4_Render(
 		}
 	}
 #endif
+
+#ifdef ENABLE_ANTIALIASING
+	for (uint y = 0; y < h - 1; y++) {
+		for (uint x = 0; x < w - 1; x++) {
+			vec3 color = colorImage[x][y] + colorImage[x+1][y] + colorImage[x][y+1] + colorImage[x+1][y+1];
+			color /= 4.0f;
+			image(x, y, 0) = color.x;
+			image(x, y, 1) = color.y;
+			image(x, y, 2) = color.z;
+		}
+	}
+#else
+	for (uint y = 0; y < h; y++) {
+		for (uint x = 0; x < w; x++) {
+			vec3 color = colorImage[x][y];
+			image(x, y, 0) = color.x;
+			image(x, y, 1) = color.y;
+			image(x, y, 2) = color.z;
+		}
+	}
+#endif
 }
+
 
 vec3 renderPixel(uint x, uint y, uint h, 
 	mat4 worldTranform, vec3 eye, 
@@ -330,7 +353,10 @@ vec3 colorShading(Ray ray, int depth,
 
 vec3 lightShading(Intersect eyeIntersect, Ray ray, const list<Light *> & lights, const vec3 & ambient, SceneNode * root) {
 	Material *material = eyeIntersect.m_material;
-	vec3 colour = material->get_kd() * ambient;
+	vec3 kd = eyeIntersect.m_kd;
+	vec3 ks = material->get_ks();
+	float shininess = material->get_shininess();
+	vec3 colour = kd * ambient;
 	vec4 point = ray.origin + eyeIntersect.t * ray.vec;
 	// cout << ray.origin << " " << ray.vec << endl;
 	// cout << point << endl;
@@ -351,13 +377,13 @@ vec3 lightShading(Intersect eyeIntersect, Ray ray, const list<Light *> & lights,
 		// cout << 2 << endl;
 		// cout <<lightIntersect.n << endl;
 		// cout << lightRay.vec << endl;
-		vec3 diffue = material->get_kd() * glm::max(dot(lightRay.vec, eyeIntersect.n), 0.0f) * lightSource->colour;
+		vec3 diffue = kd * glm::max(dot(lightRay.vec, eyeIntersect.n), 0.0f) * lightSource->colour;
 		// cout << 2.1 << endl;
 		float d = dot(lightRay.vec, eyeIntersect.n);
 		d = std::max(d, 0.0f);
 		vec4 r = -lightRay.vec + 2 * d * eyeIntersect.n;
 		// cout << 2.2 << endl;
-		vec3 specular = material->get_ks() * pow(glm::max(dot(r, -ray.vec), 0.0f), material->get_shininess()) * lightSource->colour;
+		vec3 specular = ks * pow(glm::max(dot(r, -ray.vec), 0.0f), shininess) * lightSource->colour;
 		colour += diffue + specular;
 		// cout << 3 << endl;
 #else
@@ -386,13 +412,13 @@ vec3 lightShading(Intersect eyeIntersect, Ray ray, const list<Light *> & lights,
 			// cout << 2 << endl;
 			// cout <<lightIntersect.n << endl;
 			// cout << lightRay.vec << endl;
-			vec3 diffue = material->get_kd() * glm::max(dot(lightRay.vec, eyeIntersect.n), 0.0f) * lightSource->colour;
+			vec3 diffue = kd * glm::max(dot(lightRay.vec, eyeIntersect.n), 0.0f) * lightSource->colour;
 			// cout << 2.1 << endl;
 			float d = dot(lightRay.vec, eyeIntersect.n);
 			d = std::max(d, 0.0f);
 			vec4 r = -lightRay.vec + 2 * d * eyeIntersect.n;
 			// cout << 2.2 << endl;
-			vec3 specular = material->get_ks() * pow(glm::max(dot(r, -ray.vec), 0.0f), material->get_shininess()) * lightSource->colour;
+			vec3 specular =ks * pow(glm::max(dot(r, -ray.vec), 0.0f), shininess) * lightSource->colour;
 			disperse_color += diffue + specular;
 		}
 		colour += disperse_color / (float)(LIGHT_RAY * LIGHT_RAY);
@@ -412,6 +438,7 @@ void jitterArray(int length, vector<float> &r, vector<float> &s) {
 	}
 }
 
+#ifdef ENABLE_MUTITHREAD
 void multithread_render(uint w, uint h,
 	mat4 worldTranform, vec3 eye, 
 	const list<Light *> lights, const vec3 ambient, SceneNode * root) {
@@ -437,3 +464,4 @@ void multithread_render(uint w, uint h,
 		colorImage[x][y] = color;
 	}
 }
+#endif

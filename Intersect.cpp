@@ -3,5 +3,5 @@
 using namespace std;
 
 
-Intersect::Intersect() : t(numeric_limits<float>::infinity()), n(glm::vec4()), m_material(0)
+Intersect::Intersect() : t(numeric_limits<float>::infinity()), n(glm::vec4()), m_material(0), m_kd(glm::vec3())
 {}

@@ -10,4 +10,5 @@ public:
 	float t;
 	glm::vec4 n;
 	Material *m_material;
+	glm::vec3 m_kd;
 };

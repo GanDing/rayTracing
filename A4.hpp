@@ -17,15 +17,15 @@
 #define NUM_THREAD 8
 // #define ENABLE_REFLACTION
 // #define ENABLE_REFRACTION
-#define RECURSION_DEPTH 6
+// #define RECURSION_DEPTH 6
 // #define ENABLE_SOFTSHADOW
 #define LIGHT_RAY_FACTOR 1.0f
-#define LIGHT_RAY 5
+#define LIGHT_RAY 3
 #define ENABLE_ANTIALIASING
-#define ENABLE_DOF
-#define DOF_FACTOR 1.0f
+// #define ENABLE_DOF
+#define DOF_FACTOR 0.2f
 #define DOF_SAMPLE 3
-#define DOF_FOCAL 115.0f
+#define DOF_FOCAL 75.0f
 
 void A4_Render(
 		// What to render
@@ -53,5 +53,7 @@ glm::vec3 lightShading(Intersect eyeIntersect, Ray ray, const std::list<Light *>
 
 void jitterArray(int length, std::vector<float> &r, std::vector<float> &s);
 
+#ifdef ENABLE_MUTITHREAD
 void multithread_render(uint w, uint h, glm::mat4 worldTranform, glm::vec3 eye, 
 	const std::list<Light *> lights, const glm::vec3 ambient, SceneNode * root);
+#endif

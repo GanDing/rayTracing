@@ -11,7 +11,7 @@ public:
   PhongMaterial(const glm::vec3& kd, const glm::vec3& ks, float shininess, float trans);
   virtual ~PhongMaterial();
   glm::vec3 get_kd();
-  glm::vec3 get_kd(float u, float v);
+  glm::vec3 get_kd(glm::vec2 uv);
   glm::vec3 get_ks();
   float get_shininess();
   float get_trans();

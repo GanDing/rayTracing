@@ -1,6 +1,7 @@
 // Fall 2018
 
 #include <iostream>
+#include <limits>
 #include <glm/gtx/io.hpp>
 #include "GeometryNode.hpp"
 using namespace glm;
@@ -39,6 +40,10 @@ Intersect GeometryNode::intersect(Ray ray) {
 	Ray newRay = Ray(newOrigin, newVector);
 	Intersect newIntersect = m_primitive->intersect(newRay);
 	newIntersect.m_material = m_material;
+	if (newIntersect.t < numeric_limits<float>::infinity() && newIntersect.t >= 0) {
+		newIntersect.m_kd = m_material->get_kd(m_primitive->texturePosition(newRay.origin + newIntersect.t * newRay.vec));
+		newIntersect.n = m_material->get_bumpNormal(m_primitive->texturePosition(newRay.origin + newIntersect.t * newRay.vec), newIntersect.n);
+	}
 
 	for (SceneNode *node : children) {
 		Intersect childIntersect = node->intersect(newRay);

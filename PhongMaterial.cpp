@@ -18,7 +18,7 @@ vec3 PhongMaterial::get_kd() {
 	return m_kd;
 }
 
-vec3 PhongMaterial::get_kd(float u, float v) {
+vec3 PhongMaterial::get_kd(glm::vec2 uv) {
 	return m_kd;
 }
 

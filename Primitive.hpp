@@ -10,7 +10,8 @@ class Primitive {
 public:
   virtual ~Primitive();
   virtual Intersect intersect(Ray ray);
-  bool ray_intersect_triangle(Ray ray, glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, float &t);
+  virtual bool ray_intersect_triangle(Ray ray, glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, float &t);
+  virtual glm::vec2 texturePosition(glm::vec4 point);
 };
 
 class NonhierSphere : public Primitive {
@@ -22,7 +23,7 @@ public:
   NonhierSphere() {}
   virtual ~NonhierSphere();
   virtual Intersect intersect(Ray ray);
-
+  virtual glm::vec2 texturePosition(glm::vec4 point);
 protected:
   glm::vec4 m_pos;
   float m_radius;
@@ -45,10 +46,12 @@ public:
   
   virtual ~NonhierBox();
   virtual Intersect intersect(Ray ray);
+  virtual glm::vec2 texturePosition(glm::vec4 point);
 
 protected:
   glm::vec4 m_pos;
-  glm::vec3 bounds[2];
+  // glm::vec3 bounds[2];
+  float m_size;
   glm::vec3 triangle[12][3];
 };
 
@@ -72,4 +75,15 @@ public:
   Cylinder();
   ~Cylinder();
   Intersect intersect(Ray ray);
+};
+
+class Torus : public Primitive {
+public:
+  Torus(float R, float r);
+  ~Torus();
+  Intersect intersect(Ray ray);
+
+protected:
+  float R;
+  float r;
 };

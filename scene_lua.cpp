@@ -55,6 +55,8 @@
 #include "Primitive.hpp"
 #include "Material.hpp"
 #include "PhongMaterial.hpp"
+#include "TextureMaterial.hpp"
+#include "BumpMaterial.hpp"
 #include "A4.hpp"
 
 typedef std::map<std::string,Mesh*> MeshMap;
@@ -94,6 +96,10 @@ struct gr_node_ud {
 // allocated by Lua to represent materials.
 struct gr_material_ud {
   Material* material;
+};
+
+struct gr_bump_ud {
+  BumpMaterial* bumpMaterial;
 };
 
 // The "userdata" type for a light. Objects of this type will be
@@ -268,6 +274,30 @@ int gr_cylinder_cmd(lua_State* L)
   return 1;
 }
 
+extern "C"
+int gr_torus_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
+
+  const char* name = luaL_checkstring(L, 1);
+
+  // glm::vec3 pos;
+  // get_tuple(L, 2, &pos[0], 3);
+
+  float R = luaL_checknumber(L, 2);
+  float r = luaL_checknumber(L, 3);
+
+  data->node = new GeometryNode(name, new Torus(R, r));
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
 // Create a polygonal Mesh node
 extern "C"
 int gr_mesh_cmd(lua_State* L)
@@ -403,6 +433,50 @@ int gr_material_cmd(lua_State* L)
   return 1;
 }
 
+extern "C"
+int gr_texture_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_material_ud* data = (gr_material_ud*)lua_newuserdata(L, sizeof(gr_material_ud));
+  data->material = 0;
+  
+  const char* imageName = luaL_checkstring(L, 1);
+  float ks[3];
+  get_tuple(L, 2, ks, 3);
+
+  float shininess = luaL_checknumber(L, 3);
+  float trans = luaL_checknumber(L, 4);
+  
+  data->material = new TextureMaterial(imageName,
+                                      glm::vec3(ks[0], ks[1], ks[2]),
+                                      shininess,
+                                      trans);
+
+  luaL_newmetatable(L, "gr.material");
+  lua_setmetatable(L, -2);
+  
+  return 1;
+}
+
+extern "C"
+int gr_bump_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_bump_ud* data = (gr_bump_ud*)lua_newuserdata(L, sizeof(gr_bump_ud));
+  data->bumpMaterial = 0;
+  
+  const char* imageName = luaL_checkstring(L, 1);
+  
+  data->bumpMaterial = new BumpMaterial(imageName);
+
+  luaL_newmetatable(L, "gr.bump");
+  lua_setmetatable(L, -2);
+  
+  return 1;
+}
+
 // Add a Child to a node
 extern "C"
 int gr_node_add_child_cmd(lua_State* L)
@@ -443,6 +517,24 @@ int gr_node_set_material_cmd(lua_State* L)
   Material* material = matdata->material;
 
   self->setMaterial(material);
+
+  return 0;
+}
+
+extern "C"
+int gr_material_set_bump_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_material_ud* selfdata = (gr_material_ud*)luaL_checkudata(L, 1, "gr.material");
+  luaL_argcheck(L, selfdata != 0, 1, "Material expected");
+  Material* self = selfdata->material;
+  gr_bump_ud* matdata = (gr_bump_ud*)luaL_checkudata(L, 2, "gr.bump");
+  luaL_argcheck(L, matdata != 0, 2, "Bump expected");
+
+  BumpMaterial* bumpMaterial = matdata->bumpMaterial;
+
+  self->set_bumpMaterial(bumpMaterial);
 
   return 0;
 }
@@ -546,11 +638,14 @@ static const luaL_Reg grlib_functions[] = {
   {"sphere", gr_sphere_cmd},
   {"joint", gr_joint_cmd},
   {"material", gr_material_cmd},
+  {"texture", gr_texture_cmd},
+  {"bump", gr_bump_cmd},
   // New for assignment 4
   {"cube", gr_cube_cmd},
   {"nh_sphere", gr_nh_sphere_cmd},
   {"nh_box", gr_nh_box_cmd},
   {"cylinder", gr_cylinder_cmd},
+  {"torus", gr_torus_cmd},
   {"mesh", gr_mesh_cmd},
   {"light", gr_light_cmd},
   {"render", gr_render_cmd},
@@ -580,6 +675,11 @@ static const luaL_Reg grlib_node_methods[] = {
   {0, 0}
 };
 
+static const luaL_Reg grlib_material_methods[] = {
+  {"set_bump", gr_material_set_bump_cmd},
+  {0, 0}
+};
+
 // This function calls the lua interpreter to define the scene and
 // raytrace it as appropriate.
 bool run_lua(const std::string& filename)
@@ -604,6 +704,14 @@ bool run_lua(const std::string& filename)
 
   // Load the gr.node methods
   luaL_setfuncs( L, grlib_node_methods, 0 );
+
+  luaL_newmetatable(L, "gr.material");
+  lua_pushstring(L, "__index");
+  lua_pushvalue(L, -2);
+  lua_settable(L, -3);
+
+  // Load the gr.material methods
+  luaL_setfuncs( L, grlib_material_methods, 0 );
 
   // Load the gr functions
   luaL_setfuncs(L, grlib_functions, 0);
